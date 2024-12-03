@@ -12,7 +12,17 @@ Easily launch your page with a single command. Simplify your workflow and get up
 
 ### 🌟 Quick Start
 
-Run the following command to launch your page:
+Run the following command to launch your page for Debian:
 
-```bash
-./run_page.sh
+```git clone https://github.com/kratos-archive/page.git && cd page/debian && chmod 777 * && ./install
+cd /root/page/debian/ && ./clean
+cd /root/page/debian/ && ./ssl
+cd /root/page/debian/ && ./install```
+
+Run the following command to launch your page for Centos:
+
+```git clone https://github.com/kratos-archive/page.git && cd page/debian && chmod 777 * && ./install
+cd /root/page/centos/ && ./clean
+cd /root/page/centos/ && ./ssl
+cd /root/page/centos/ && ./install```
+
