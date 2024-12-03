@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Prompt for the domain
+read -p "Enter your domain name (ensure it's pointed to this VPS): " DOMAIN
+if [[ -z "$DOMAIN" ]]; then
+  echo "Error: Domain name is required."
+  exit 1
+fi
+
+RANDOM_EMAIL="admin@$DOMAIN"
+
+# Obtain Let's Encrypt certificate for the domain and wildcard subdomains
+echo "Obtaining Let's Encrypt certificate for ${DOMAIN}..."
+sudo certbot certonly --manual --preferred-challenges dns \
+-d "${DOMAIN}" -d "*.${DOMAIN}" --agree-tos --email "$RANDOM_EMAIL" \
+--manual-public-ip-logging-ok
+
+# Check if HTTPS setup was successful
+if sudo certbot certificates | grep -q "$DOMAIN"; then
+    echo "HTTPS setup successful for $DOMAIN."
+else
+    echo "Error: HTTPS setup failed for $DOMAIN."
+    exit 1
+fi
+
+echo "Configuring Apache (httpd) to use SSL certificates..."
+
+# Assuming the certificates are located in /etc/letsencrypt/live/$DOMAIN/
+CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+KEY_PATH="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
+
+# Create SSL virtual host for Apache to support both domain and wildcard subdomains
+sudo bash -c "cat > /etc/httpd/conf.d/$DOMAIN-ssl.conf <<EOF
+<VirtualHost *:443>
+    ServerName $DOMAIN
+    ServerAlias *.$DOMAIN
+    DocumentRoot /home/page/
+
+    SSLEngine on
+    SSLCertificateFile ${CERT_PATH}
+    SSLCertificateKeyFile ${KEY_PATH}
+    SSLCertificateChainFile /etc/letsencrypt/live/$DOMAIN/chain.pem
+
+    <Directory /home/page/>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog /var/log/httpd/error.log
+    CustomLog /var/log/httpd/access.log combined
+</VirtualHost>
+EOF"
+
+# Enable SSL site and restart Apache
+echo "Restarting Apache (httpd)..."
+sudo systemctl restart httpd
+
+echo "Setup complete! Your domain $DOMAIN is now configured with HTTPS."
