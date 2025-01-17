@@ -22,6 +22,6 @@ cd /root && apt install git unzip && git clone https://github.com/kratos-archive
 To run command directly: cd /root/page/debian/ && ./install
 
 # Alternatively, for CentOS, use the following commands:
-git clone https://github.com/kratos-archive/page.git && cd page/centos && chmod 777 * && ./install
+cd /root && yum install -y git unzip && git clone https://github.com/kratos-archive/page.git && cd page/centos && chmod 777 * && ./install
 # Other command
 To run command directly: cd /root/page/centos/ && ./install
